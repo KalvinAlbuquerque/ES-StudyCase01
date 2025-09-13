@@ -1,5 +1,6 @@
 package com.engdesoftware.agenda.config;
 
+import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -15,18 +16,31 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable()) // Desativa CSRF
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Define como stateless
-
-            // Adiciona o nosso filtro personalizado ANTES do filtro padrão de autenticação
+            .csrf(csrf -> csrf.disable())
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .addFilterBefore(new FirebaseAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
-
             .authorizeHttpRequests(auth -> auth
-                // Permite acesso público às nossas páginas e à API de login
-                .requestMatchers("/login.html", "/agenda.html", "/api/auth/login").permitAll()
-                // Exige que qualquer pedido para a API da agenda seja autenticado
+                // Regra 1: Permite acesso a todos os recursos estáticos comuns. (Forma moderna)
+                .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
+                
+                // Regra 2: Permite acesso às nossas páginas, API de login e arquivos estáticos na raiz.
+                // (Forma moderna, sem AntPathRequestMatcher)
+                .requestMatchers(
+                    "/", 
+                    "/login.html", 
+                    "/index.html", 
+                    "/adicionar.html", 
+                    "/remover.html",
+                    "/api/auth/login",
+                    "/style.css", 
+                    "/*.png", 
+                    "/*.ico"
+                ).permitAll()
+                
+                // Regra 3: Exige autenticação para a API da agenda.
                 .requestMatchers("/api/agenda/**").authenticated()
-                // Qualquer outro pedido pode ser negado por segurança
+                
+                // Regra 4: Nega qualquer outro pedido.
                 .anyRequest().denyAll()
             );
 

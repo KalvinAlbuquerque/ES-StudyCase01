@@ -29,7 +29,7 @@ public class AgendaController
     public ResponseEntity<String> adicionarContato(Authentication authentication, @RequestBody Contato contato) {
         String uid = authentication.getName();
         agenda.adicionaContato(uid, contato);
-        return ResponseEntity.ok("{\"message\":\"Contacto adicionado com sucesso.\"}");
+        return ResponseEntity.ok("{\"message\":\"contato adicionado com sucesso.\"}");
     }
 
     @DeleteMapping("/contatos/{telefone}")
@@ -37,10 +37,10 @@ public class AgendaController
         String uid = authentication.getName();
         boolean sucesso = agenda.removeContato(uid, telefone);
         if (sucesso) {
-            return ResponseEntity.ok("{\"message\":\"Contacto removido com sucesso.\"}");
+            return ResponseEntity.ok("{\"message\":\"contato removido com sucesso.\"}");
         } else {
             // Lança uma exceção que será tratada pelo GlobalExceptionHandler
-            throw new IllegalArgumentException("Contacto com o telefone " + telefone + " não encontrado.");
+            throw new IllegalArgumentException("contato com o telefone " + telefone + " não encontrado.");
         }
     }
 }

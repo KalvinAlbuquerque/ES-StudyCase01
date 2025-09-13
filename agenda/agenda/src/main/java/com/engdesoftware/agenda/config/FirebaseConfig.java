@@ -23,7 +23,7 @@ public class FirebaseConfig {
 
             // Inicializa a aplicação Firebase se ainda não houver uma instância
             if (FirebaseApp.getApps().isEmpty()) {
-                FirebaseOptions options = new FirebaseOptions.Builder()
+                FirebaseOptions options = FirebaseOptions.builder()
                         .setCredentials(GoogleCredentials.fromStream(serviceAccount))
                         .build();
 
