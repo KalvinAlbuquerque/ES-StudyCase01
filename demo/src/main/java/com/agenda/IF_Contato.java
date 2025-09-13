@@ -1,4 +1,3 @@
-// Define o pacote onde a interface está localizada
 package com.agenda;
 
 /**
