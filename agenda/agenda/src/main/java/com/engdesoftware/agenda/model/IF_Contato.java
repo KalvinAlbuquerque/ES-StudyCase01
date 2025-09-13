@@ -14,6 +14,9 @@ public interface IF_Contato {
     String getId();
     void setId(String id);
 
+    String getUid();
+    void setUid(String uid);
+
     // O método equals é crucial para a regra de unicidade do telefone
     boolean equals(Object obj);
 

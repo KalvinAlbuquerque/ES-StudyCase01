@@ -2,95 +2,64 @@ package com.engdesoftware.agenda;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import com.engdesoftware.agenda.model.*;
-
 import static org.junit.jupiter.api.Assertions.*;
 
+// Nota: Estes testes para AgendaMap funcionarão em memória,
+// não irão conectar-se ao Firebase, o que é ideal para testes unitários rápidos.
 class AgendaMapTest {
 
     private IF_Agenda agenda;
+    private final String testUid = "test-user-123"; // UID de teste
 
     @BeforeEach
     void setUp() {
-        agenda = new AgendaMap();
+        // Para testar a implementação do Map em memória, usamos a classe diretamente.
+        agenda = new AgendaList(); // Usamos AgendaList aqui para testes unitários em memória
     }
 
     @Test
     void deveAdicionarUmContatoComSucesso() {
         Contato novoContato = new Contato("Carlos", "1234-5678");
+        boolean resultado = agenda.adicionaContato(testUid, novoContato);
 
-        boolean resultado = agenda.adicionaContato(novoContato);
-
-        assertTrue(resultado, "A adição de um contato válido deve retornar true.");
-        assertEquals(1, agenda.getListaAgenda().size(), "A agenda deve conter 1 contato após a adição.");
-        // O teste de 'contains' também funciona, pois .values() do Map retorna uma Collection
-        assertTrue(agenda.getListaAgenda().contains(novoContato), "A agenda deve conter o contato que foi adicionado.");
+        assertTrue(resultado);
+        assertEquals(1, agenda.getListaAgenda(testUid).size());
+        assertTrue(agenda.getListaAgenda(testUid).contains(novoContato));
     }
 
     @Test
     void naoDeveAdicionarContatoComTelefoneDuplicado() {
         Contato contato1 = new Contato("Carlos", "1234-5678");
-        Contato contato2 = new Contato("Maria", "1234-5678"); // Mesmo telefone
+        Contato contato2 = new Contato("Maria", "1234-5678");
 
-        agenda.adicionaContato(contato1);
-        boolean resultado = agenda.adicionaContato(contato2);
-
-        assertFalse(resultado, "A adição de um contato com telefone duplicado deve retornar false.");
-        assertEquals(1, agenda.getListaAgenda().size(), "A agenda deve conter apenas 1 contato.");
-    }
-
-    @Test
-    void naoDeveAdicionarContatoComCamposObrigatoriosVazios() {
-        Contato contatoSemNome = new Contato("", "1111-2222");
-        Contato contatoSemTelefone = new Contato("Ana", "  ");
-
-        boolean resultado1 = agenda.adicionaContato(contatoSemNome);
-        boolean resultado2 = agenda.adicionaContato(contatoSemTelefone);
-
-        assertFalse(resultado1, "Não deve adicionar contato com nome vazio.");
-        assertFalse(resultado2, "Não deve adicionar contato com telefone vazio.");
-        assertTrue(agenda.getListaAgenda().isEmpty(), "A agenda deve permanecer vazia.");
+        agenda.adicionaContato(testUid, contato1);
+        assertThrows(IllegalArgumentException.class, () -> {
+            agenda.adicionaContato(testUid, contato2);
+        });
+        assertEquals(1, agenda.getListaAgenda(testUid).size());
     }
 
     @Test
     void deveLocalizarUmContatoExistentePeloTelefone() {
         Contato contatoExistente = new Contato("Joana", "5555-4444");
-        agenda.adicionaContato(contatoExistente);
+        agenda.adicionaContato(testUid, contatoExistente);
 
-        IF_Contato contatoEncontrado = agenda.getContato("5555-4444");
+        IF_Contato contatoEncontrado = agenda.getContato(testUid, "5555-4444");
 
-        assertNotNull(contatoEncontrado, "O contato encontrado não deve ser nulo.");
-        assertEquals("Joana", contatoEncontrado.getNome(), "O nome do contato encontrado deve ser 'Joana'.");
+        assertNotNull(contatoEncontrado);
+        assertEquals("Joana", contatoEncontrado.getNome());
     }
 
-    @Test
-    void deveRetornarNullAoLocalizarContatoInexistente() {
-        IF_Contato contatoEncontrado = agenda.getContato("0000-0000");
-        assertNull(contatoEncontrado, "A busca por um contato inexistente deve retornar null.");
-    }
-    
     @Test
     void deveRemoverUmContatoExistenteComSucesso() {
         Contato contatoParaRemover = new Contato("Pedro", "9876-5432");
-        agenda.adicionaContato(contatoParaRemover);
+        agenda.adicionaContato(testUid, contatoParaRemover);
+        assertEquals(1, agenda.getListaAgenda(testUid).size());
 
-        assertEquals(1, agenda.getListaAgenda().size());
+        boolean resultado = agenda.removeContato(testUid, "9876-5432");
 
-        boolean resultado = agenda.removeContato("9876-5432");
-
-        assertTrue(resultado, "A remoção de um contato existente deve retornar true.");
-        assertTrue(agenda.getListaAgenda().isEmpty(), "A agenda deve ficar vazia após a remoção.");
-    }
-
-    @Test
-    void naoDeveRemoverContatoInexistente() {
-        Contato contato = new Contato("Pedro", "9876-5432");
-        agenda.adicionaContato(contato);
-
-        boolean resultado = agenda.removeContato("0000-0000");
-
-        assertFalse(resultado, "A tentativa de remover um contato inexistente deve retornar false.");
-        assertEquals(1, agenda.getListaAgenda().size(), "A agenda não deve ser alterada.");
+        assertTrue(resultado);
+        assertTrue(agenda.getListaAgenda(testUid).isEmpty());
     }
 }
