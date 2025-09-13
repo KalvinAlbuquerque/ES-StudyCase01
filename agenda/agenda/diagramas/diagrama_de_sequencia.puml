@@ -1,0 +1,50 @@
+@startuml diagrama_de_sequencia
+' Thema para um visual mais moderno
+!theme vibrant
+
+title Diagrama de Sequência - Remover Contato
+
+actor Usuário
+participant "Browser\n(remover.html)" as Browser
+participant "Spring Boot App\n(AgendaController)" as App
+participant "AgendaMap" as Agenda
+participant "Firebase Firestore" as Firestore
+
+Usuário -> Browser: Digita nome/telefone para buscar
+Browser -> App: GET /api/agenda/contatos\n(com ID Token no Header)
+
+activate App
+App -> Agenda: getListaAgenda(uid)
+activate Agenda
+Agenda -> Firestore: whereEqualTo("uid", uid).get()
+activate Firestore
+Firestore --> Agenda: Retorna lista de contatos
+deactivate Firestore
+Agenda --> App: Retorna Collection<IF_Contato>
+deactivate Agenda
+App --> Browser: Resposta 200 OK com JSON dos contatos
+deactivate App
+
+Browser -> Browser: Filtra contatos e exibe o encontrado
+Usuário -> Browser: Clica em "Remover Contato"
+Browser -> Browser: Abre Modal de Confirmação
+
+Usuário -> Browser: Clica em "Sim, Remover" no Modal
+Browser -> App: DELETE /api/agenda/contatos/{telefone}\n(com ID Token)
+
+activate App
+App -> Agenda: removeContato(uid, telefone)
+activate Agenda
+Agenda -> Agenda: getContato(uid, telefone) para achar o ID do documento
+Agenda -> Firestore: delete(documentId)
+activate Firestore
+Firestore --> Agenda: Confirmação de remoção
+deactivate Firestore
+Agenda --> App: return true
+deactivate Agenda
+App --> Browser: Resposta 200 OK {"message": "..."}
+deactivate App
+
+Browser -> Usuário: Exibe Toast de "Contato removido com sucesso!"
+
+@enduml
