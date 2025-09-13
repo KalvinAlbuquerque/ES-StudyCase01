@@ -28,9 +28,9 @@ public class AgendaMap implements IF_Agenda {
         try {
             // Verifica se o telefone já existe APENAS para este utilizador
             if (getContato(uid, contato.getTelefone()) != null) {
-                throw new IllegalArgumentException("Você já possui um contacto com o telefone " + contato.getTelefone() + ".");
+                throw new IllegalArgumentException("Você já possui um contato com o telefone " + contato.getTelefone() + ".");
             }
-            // Define o dono do contacto antes de o guardar
+            // Define o dono do contato antes de o guardar
             contato.setUid(uid);
             getDb().collection(COLLECTION_NAME).document().set(contato).get();
             return true;
@@ -66,7 +66,7 @@ public class AgendaMap implements IF_Agenda {
     @Override
     public boolean removeContato(String uid, String telefone) {
         try {
-            // Localiza o contacto específico deste utilizador para obter o ID do documento
+            // Localiza o contato específico deste utilizador para obter o ID do documento
             IF_Contato contatoParaRemover = getContato(uid, telefone);
             if (contatoParaRemover == null || contatoParaRemover.getId() == null) {
                 return false;
@@ -83,7 +83,7 @@ public class AgendaMap implements IF_Agenda {
     public Collection<IF_Contato> getListaAgenda(String uid) {
         List<IF_Contato> contatos = new ArrayList<>();
         try {
-            // A query agora filtra para trazer apenas os contactos cujo "uid" corresponde ao do utilizador logado
+            // A query agora filtra para trazer apenas os contatos cujo "uid" corresponde ao do utilizador logado
             ApiFuture<QuerySnapshot> future = getDb().collection(COLLECTION_NAME).whereEqualTo("uid", uid).get();
             for (QueryDocumentSnapshot document : future.get().getDocuments()) {
                 Contato contato = document.toObject(Contato.class);

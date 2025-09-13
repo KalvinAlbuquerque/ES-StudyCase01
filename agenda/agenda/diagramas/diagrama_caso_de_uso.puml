@@ -1,0 +1,32 @@
+@startuml diagrama_de_caso_de_uso
+' Thema para um visual mais moderno
+!theme vibrant
+
+title Afrodite Calendar - Casos de Uso
+
+actor "Usuário" as user
+
+rectangle "Sistema Afrodite Calendar" {
+  usecase "Adicionar Contato" as UC_ADD
+  usecase "Listar/Buscar Contatos" as UC_LIST_SEARCH
+  usecase "Remover Contato" as UC_REMOVE
+  usecase "Autenticar-se" as UC_AUTH
+}
+
+' Força o layout vertical para dar espaço
+UC_ADD -[hidden]down- UC_LIST_SEARCH
+UC_LIST_SEARCH -[hidden]down- UC_REMOVE
+UC_REMOVE -[hidden]down- UC_AUTH
+
+' Ações diretas do usuário
+user -- UC_ADD
+user -- UC_LIST_SEARCH
+user -- UC_REMOVE
+user -- UC_AUTH
+
+' Define que as outras ações dependem da autenticação
+UC_ADD .> UC_AUTH : <<include>>
+UC_LIST_SEARCH .> UC_AUTH : <<include>>
+UC_REMOVE .> UC_AUTH : <<include>>
+
+@enduml

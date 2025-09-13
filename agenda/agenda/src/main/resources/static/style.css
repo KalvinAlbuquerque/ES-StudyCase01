@@ -1,0 +1,250 @@
+:root {
+    --primary-glow-color: #f957d4;
+    --secondary-glow-color: #8a42f5;
+    --danger-glow-color: #ff4d6d;
+    --dark-bg: #12121c;
+    --sidebar-bg: rgba(22, 22, 34, 0.7);
+    --card-bg: rgba(22, 22, 34, 0.6);
+    --text-color: #e0e0e0;
+    --border-color: rgba(249, 87, 212, 0.2);
+    --input-bg: #1e1e2d;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--dark-bg);
+    background-image: radial-gradient(circle at 1% 1%, var(--secondary-glow-color), transparent 35%), radial-gradient(circle at 99% 99%, var(--primary-glow-color), transparent 35%);
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    color: var(--text-color);
+    display: flex;
+}
+
+#sidebar {
+    min-width: 250px;
+    max-width: 250px;
+    background: var(--sidebar-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    min-height: 100vh;
+    border-right: 1px solid var(--border-color);
+    transition: all 0.3s;
+}
+
+#sidebar .sidebar-header {
+    padding: 20px;
+    text-align: center;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.sidebar-logo {
+    width: 100px;
+    margin-bottom: 10px;
+}
+
+#sidebar ul.components {
+    padding: 20px 0;
+}
+
+#sidebar ul p {
+    color: #fff;
+    padding: 10px;
+}
+
+#sidebar ul li a {
+    padding: 15px 20px;
+    font-size: 1.1em;
+    display: block;
+    color: rgba(255, 255, 255, 0.7);
+    border-left: 3px solid transparent;
+    text-decoration: none;
+    transition: all 0.3s;
+}
+
+#sidebar ul li a:hover {
+    color: #fff;
+    background: rgba(249, 87, 212, 0.1);
+}
+
+#sidebar ul li.active > a, a[aria-expanded="true"] {
+    color: #fff;
+    background: var(--primary-glow-color);
+    border-left: 3px solid var(--secondary-glow-color);
+}
+
+#content {
+    width: 100%;
+    padding: 20px 40px;
+    min-height: 100vh;
+    transition: all 0.3s;
+    overflow-y: auto;
+}
+
+.card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.card-header {
+    background-color: transparent;
+    border-bottom: 1px solid var(--border-color);
+    font-weight: 600;
+    color: white;
+    text-shadow: 0 0 5px var(--primary-glow-color);
+}
+
+.form-label {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.9rem;
+}
+
+.form-control {
+    background-color: var(--input-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    border-radius: 8px;
+}
+
+.form-control:focus {
+    background-color: var(--input-bg);
+    color: var(--text-color);
+    border-color: var(--primary-glow-color);
+    box-shadow: 0 0 15px rgba(249, 87, 212, 0.4);
+}
+
+/* ========================================= */
+/* === CORREÇÃO PARA O TEXTO PLACEHOLDER === */
+/* ========================================= */
+.form-control::placeholder {
+    color: rgba(224, 224, 224, 0.4); /* Cinza claro, com 40% de opacidade */
+    opacity: 1; /* Garante que a cor seja aplicada corretamente em todos os navegadores */
+}
+
+.btn-primary {
+    background: linear-gradient(90deg, var(--primary-glow-color), var(--secondary-glow-color));
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    padding: 10px 20px;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(249, 87, 212, 0.5);
+}
+
+.btn-danger {
+    background-color: var(--danger-glow-color);
+    border-color: var(--danger-glow-color);
+    transition: all 0.3s ease;
+}
+
+.btn-danger:hover {
+    box-shadow: 0 0 15px rgba(255, 77, 109, 0.6);
+}
+
+.table {
+    --bs-table-color: var(--text-color);
+    --bs-table-bg: transparent;
+    --bs-table-border-color: var(--border-color);
+    --bs-table-hover-color: white;
+    --bs-table-hover-bg: rgba(249, 87, 212, 0.15);
+}
+
+.table thead th {
+    color: white;
+    font-weight: 600;
+}
+
+/* Correções de visibilidade para remover.html */
+#contact-to-remove p {
+    color: var(--text-color);
+    margin-bottom: 0.5rem;
+}
+
+#contact-to-remove p strong {
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 400;
+}
+
+#contact-to-remove span {
+    color: white;
+    font-weight: 600;
+}
+
+#remove-feedback {
+    color: var(--primary-glow-color);
+    margin-top: 1rem;
+    font-weight: 600;
+    min-height: 1.5em;
+}
+
+/* Container para posicionar os toasts no canto da tela */
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1090; /* Garante que fique acima de outros elementos */
+}
+
+/* ======================== */
+/* === Estilo do Modal === */
+/* ======================== */
+
+.modal-content {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: var(--text-color);
+}
+
+.modal-header {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-footer {
+    border-top: 1px solid var(--border-color);
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+}
+
+/* ================================= */
+/* === Estilo do Botão de Logout === */
+/* ================================= */
+
+#sidebar .sidebar-footer {
+    position: absolute; /* Fixa o footer na base da sidebar */
+    bottom: 0;
+    width: 100%;
+    padding: 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+#sidebar .logout-button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    background: var(--danger-glow-color); /* Usa a cor vermelha de perigo */
+    color: white;
+    text-align: center;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+#sidebar .logout-button:hover {
+    box-shadow: 0 0 15px rgba(255, 77, 109, 0.6);
+    transform: translateY(-2px);
+}

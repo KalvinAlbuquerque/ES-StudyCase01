@@ -1,0 +1,78 @@
+@startuml diagrama_de_classe
+' Thema para um visual mais moderno
+!theme vibrant
+
+title Diagrama de Classes - Afrodite Calendar
+
+interface IF_Agenda {
+  + adicionaContato(uid: String, contato: IF_Contato): boolean
+  + getContato(uid: String, telefone: String): IF_Contato
+  + removeContato(uid: String, telefone: String): boolean
+  + getListaAgenda(uid: String): Collection<IF_Contato>
+}
+
+interface IF_Contato {
+  + getNome(): String
+  + getTelefone(): String
+  + getUid(): String
+  + getId(): String
+}
+
+class Contato implements IF_Contato {
+  - id: String
+  - nome: String
+  - telefone: String
+  - uid: String
+}
+
+class AgendaMap implements IF_Agenda {
+  - COLLECTION_NAME: String
+  - getDb(): Firestore
+  + adicionaContato(uid: String, contato: IF_Contato): boolean
+  + getContato(uid: String, telefone: String): IF_Contato
+  + removeContato(uid: String, telefone: String): boolean
+  + getListaAgenda(uid: String): Collection<IF_Contato>
+}
+
+class AgendaController {
+  - agenda: IF_Agenda
+  + listarContatos(auth: Authentication): ResponseEntity
+  + adicionarContato(auth: Authentication, contato: Contato): ResponseEntity
+  + removerContato(auth: Authentication, telefone: String): ResponseEntity
+}
+
+class AuthController {
+  - authService: AuthService
+  + handleLogin(loginRequest: LoginRequest): ResponseEntity
+}
+
+class AuthService {
+  - firebaseApiKey: String
+  + loginAndGetIdToken(email: String, password: String): Optional<String>
+}
+
+class FirebaseAuthenticationFilter {
+  + doFilterInternal(...)
+}
+
+class SecurityConfig {
+  + securityFilterChain(http: HttpSecurity): SecurityFilterChain
+}
+
+AgendaController o-- IF_Agenda
+AgendaMap ..> "com.google.cloud.firestore" : usa
+AuthController o-- AuthService
+AuthService ..> "Firebase Identity Platform" : (REST API)
+
+note right of AgendaController
+  Recebe requisições HTTP
+  para gerenciar contatos.
+end note
+
+note bottom of FirebaseAuthenticationFilter
+  Intercepta todas as requisições,
+  valida o Token JWT com o Firebase
+  e autentica o usuário no Spring Security.
+end note
+
+@enduml

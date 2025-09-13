@@ -32,7 +32,7 @@ class AgendaListTest {
         Contato contato2 = new Contato("Maria", "1234-5678");
 
         agenda.adicionaContato(testUid, contato1);
-        // Tenta adicionar o segundo contacto para o mesmo utilizador
+        // Tenta adicionar o segundo contato para o mesmo utilizador
         assertThrows(IllegalArgumentException.class, () -> {
             agenda.adicionaContato(testUid, contato2);
         });
