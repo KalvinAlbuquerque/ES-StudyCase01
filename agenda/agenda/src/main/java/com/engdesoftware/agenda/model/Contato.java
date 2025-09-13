@@ -1,17 +1,19 @@
 package com.engdesoftware.agenda.model;
 
 import java.util.Objects;
+import com.google.cloud.firestore.annotation.Exclude;
 
 /**
  * Classe que representa um contato na agenda.
  * Implementa a interface IF_Contato.
  */
 public class Contato implements IF_Contato {
+    @Exclude
     private String id;
-
     
     private String nome;
     private String telefone;
+    private String uid;
 
     /**
      * Construtor para criar um novo Contato.
@@ -54,6 +56,10 @@ public class Contato implements IF_Contato {
     public void setId(String id) {
         this.id = id;
     }
+    
+    public String getUid() { return uid; }
+
+    public void setUid(String uid) { this.uid = uid; }
 
 
     /**

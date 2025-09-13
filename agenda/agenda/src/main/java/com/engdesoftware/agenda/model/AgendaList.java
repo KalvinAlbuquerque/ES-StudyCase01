@@ -3,87 +3,82 @@ package com.engdesoftware.agenda.model;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * Implementação da interface IF_Agenda que utiliza um ArrayList para
- * armazenar os contatos.
+ * Implementação da interface IF_Agenda que utiliza um ArrayList em memória
+ * para armazenar os contactos. Esta versão foi atualizada para suportar
+ * a assinatura de múltiplos utilizadores.
  */
 public class AgendaList implements IF_Agenda {
 
-    private List<IF_Contato> listaContato = new ArrayList<>();
+    private final List<IF_Contato> listaContatoGlobal = new ArrayList<>();
 
     /**
-     * Adiciona um contato à agenda, após validar os campos e a unicidade do telefone.
-     * @param contato O contato a ser adicionado.
-     * @return true se o contato foi adicionado com sucesso, false caso contrário.
+     * Adiciona um contacto à lista em memória, associando-o a um utilizador.
+     * @param uid O identificador único do utilizador dono do contacto.
+     * @param contato O contacto a ser adicionado.
+     * @return true se o contacto foi adicionado com sucesso, false caso contrário.
      */
     @Override
-    public boolean adicionaContato(IF_Contato contato) {
-        // Validação para não ter campos obrigatórios vazios 
+    public boolean adicionaContato(String uid, IF_Contato contato) {
         if (contato.getNome() == null || contato.getNome().trim().isEmpty() ||
             contato.getTelefone() == null || contato.getTelefone().trim().isEmpty()) {
-            System.out.println("Erro: Nome e telefone são campos obrigatórios e não podem estar vazios.");
-            return false;
+            throw new IllegalArgumentException("Nome e telefone são campos obrigatórios.");
         }
 
-        // Validação de unicidade do telefone, percorrendo a lista 
-        for (IF_Contato c : listaContato) {
-            if (c.getTelefone().equals(contato.getTelefone())) {
-                System.out.println("Erro: Já existe um contato com o telefone " + contato.getTelefone() + ". A operação foi rejeitada.");
-                return false; // Rejeita a operação
-            }
+        // Verifica a unicidade do telefone apenas entre os contactos do mesmo utilizador
+        boolean telefoneJaExiste = listaContatoGlobal.stream()
+                .anyMatch(c -> c.getUid().equals(uid) && c.getTelefone().equals(contato.getTelefone()));
+
+        if (telefoneJaExiste) {
+            throw new IllegalArgumentException("Você já possui um contacto com o telefone " + contato.getTelefone() + ".");
         }
         
-        boolean sucesso = listaContato.add(contato);
-        if (sucesso) {
-            System.out.println("Contato adicionado com sucesso: " + contato); // Confirmação de sucesso 
-        }
-        return sucesso;
+        // Define o dono do contacto antes de o adicionar
+        contato.setUid(uid);
+        return listaContatoGlobal.add(contato);
     }
 
     /**
-     * Localiza um contato na agenda pelo número de telefone. 
+     * Localiza um contacto específico de um utilizador pelo telefone.
+     * @param uid O identificador do utilizador.
      * @param telefone O telefone a ser buscado.
      * @return O objeto IF_Contato correspondente ou null se não for encontrado.
      */
     @Override
-    public IF_Contato getContato(String telefone) {
-        for (IF_Contato c : listaContato) {
-            if (c.getTelefone().equals(telefone)) {
-                return c; // Retorna o contato encontrado 
-            }
-        }
-        return null; // Retorna null se não encontrar
+    public IF_Contato getContato(String uid, String telefone) {
+        return listaContatoGlobal.stream()
+                .filter(c -> c.getUid().equals(uid) && c.getTelefone().equals(telefone))
+                .findFirst()
+                .orElse(null);
     }
 
     /**
-     * Remove um contato da agenda. 
-     * @param telefone O telefone do contato a ser removido. 
-     * @return true se o contato foi removido com sucesso, false caso contrário.
+     * Remove um contacto específico de um utilizador.
+     * @param uid O identificador do utilizador.
+     * @param telefone O telefone do contacto a ser removido.
+     * @return true se o contacto foi removido com sucesso, false caso contrário.
      */
     @Override
-    public boolean removeContato(String telefone) {
-        IF_Contato contatoParaRemover = getContato(telefone);
-        
-        // Confirma a existência do contato antes de remover 
+    public boolean removeContato(String uid, String telefone) {
+        IF_Contato contatoParaRemover = getContato(uid, telefone);
         if (contatoParaRemover != null) {
-            boolean sucesso = listaContato.remove(contatoParaRemover);
-            if (sucesso) {
-                System.out.println("Confirmação: Contato removido com sucesso."); // Confirmação de remoção
-            }
-            return sucesso;
+            return listaContatoGlobal.remove(contatoParaRemover);
         }
-        
-        System.out.println("Erro: Contato com telefone " + telefone + " não foi encontrado para remoção."); // Mensagem de erro 
         return false;
     }
 
     /**
-     * Fornece uma visão completa de todos os contatos da agenda. 
-     * @return Uma coleção com a lista de contatos. 
+     * Retorna a lista de contactos pertencentes apenas a um utilizador específico.
+     * @param uid O identificador do utilizador.
+     * @return Uma coleção com os contactos do utilizador.
      */
     @Override
-    public Collection<IF_Contato> getListaAgenda() {
-        return this.listaContato;
+    public Collection<IF_Contato> getListaAgenda(String uid) {
+        // Filtra a lista global para devolver apenas os contactos do utilizador solicitado
+        return this.listaContatoGlobal.stream()
+                .filter(contato -> contato.getUid().equals(uid))
+                .collect(Collectors.toList());
     }
 }
