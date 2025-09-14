@@ -37,7 +37,8 @@ public class FabricaAgenda {
      * @param tipo O tipo de agenda desejado (use as constantes AGENDA_MAP ou AGENDA_LIST).
      * @return Uma instância que implementa IF_Agenda ou null se o tipo for inválido.
      */
-    public IF_Agenda criaAgenda(int tipo) {
+    public IF_Agenda criaAgenda(int tipo) 
+    {
         switch (tipo) {
             case AGENDA_LIST:
                 System.out.println("Criando uma instância de AgendaList...");

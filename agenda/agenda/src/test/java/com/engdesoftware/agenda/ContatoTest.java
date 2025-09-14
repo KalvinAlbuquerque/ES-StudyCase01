@@ -5,7 +5,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.engdesoftware.agenda.model.*;
 
-class ContatoTest {
+class ContatoTest 
+{
 
     @Test
     void doisContatosComMesmoTelefoneDevemSerIguais() {
