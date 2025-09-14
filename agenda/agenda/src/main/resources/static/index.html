@@ -53,9 +53,11 @@
 
         if (!idToken) window.location.href = '/login.html';
 
-        function renderContacts(contactsToRender) {
+        function renderContacts(contactsToRender) 
+        {
             listaContatos.innerHTML = '';
-            if (contactsToRender.length === 0) {
+            if (contactsToRender.length === 0) 
+            {
                 const message = searchInput.value ? 'Nenhum contato encontrado para esta busca.' : 'Nenhum contato na agenda.';
                 listaContatos.innerHTML = `<tr><td colspan="2" class="text-center">${message}</td></tr>`;
             } else {
@@ -72,6 +74,8 @@
                 const response = await fetch('/api/agenda/contatos', { headers: { 'Authorization': `Bearer ${idToken}` } });
                 if (!response.ok) throw new Error('Falha ao carregar contatos');
                 allContacts = await response.json();
+
+                console.log(allContacts)
                 renderContacts(allContacts);
             } catch (error) {
                 console.error(error);
