@@ -29,7 +29,7 @@ public class AgendaList implements IF_Agenda {
         // Validação de unicidade do telefone, percorrendo a lista 
         for (IF_Contato c : listaContato) {
             if (c.getTelefone().equals(contato.getTelefone())) {
-                throw new IllegalArgumentException("Erro: Já existe um contato com o telefone " + contato.getTelefone() + ". A operação foi rejeitada.");
+                throw new IllegalArgumentException("Erro: Já existe um contato com o telefone " + contato.getTelefone() + "!");
             }
         }
         

@@ -41,10 +41,10 @@ public class FabricaAgenda {
     {
         switch (tipo) {
             case AGENDA_LIST:
-                System.out.println("Criando uma instância de AgendaList...");
+                // System.out.println("Criando uma instância de AgendaList...");
                 return new AgendaList();
             case AGENDA_MAP:
-                System.out.println("Criando uma instância de AgendaMap...");
+                // System.out.println("Criando uma instância de AgendaMap...");
                 return new AgendaMap();
             default:
                 // Lança uma exceção se o tipo for desconhecido
