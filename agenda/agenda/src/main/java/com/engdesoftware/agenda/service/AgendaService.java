@@ -93,8 +93,11 @@ public class AgendaService {
             // Constrói a query para buscar contatos pelo UID do usuário
             ApiFuture<QuerySnapshot> future = getDb().collection(COLLECTION_NAME).whereEqualTo("uid", uid).get();
             // Itera sobre os documentos retornados e os converte em objetos Contato
-            for (QueryDocumentSnapshot document : future.get().getDocuments()) {
-                Contato contato = document.toObject(Contato.class);
+            for (QueryDocumentSnapshot document : future.get().getDocuments()) 
+            {
+                String nome = document.getString("nome");
+                String telefone = document.getString("telefone");
+                IF_Contato contato = new Contato(nome, telefone);
                 contatos.add(contato);
             }
         } catch (Exception e) {
@@ -116,7 +119,8 @@ public class AgendaService {
      * @throws ExecutionException       Se ocorrer um erro durante a execução da operação no Firestore.
      * @throws IllegalArgumentException Se nenhum contato com o telefone especificado for encontrado na agenda do usuário.
      */
-    public boolean removerContatoDeUsuario(String uid, String telefone) throws InterruptedException, ExecutionException, IllegalArgumentException {
+    public boolean removerContatoDeUsuario(String uid, String telefone) throws InterruptedException, ExecutionException, IllegalArgumentException 
+    {
         IF_Agenda agenda = getAgendaDeUsuario(uid);
         agenda.removeContato(telefone); // Valida se o contato existe e o remove do modelo local
 
