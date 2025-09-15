@@ -1,8 +1,3 @@
-
-Claro! Um bom `README.md` é a porta de entrada para qualquer projeto. Ele deve explicar o que o projeto faz, as tecnologias que utiliza e como outra pessoa pode configurá-lo e executá-lo.
-
-Com base em todos os arquivos do seu repositório, preparei um `README.md` completo e bem estruturado.
-
 ---
 
 # Afrodite Calendar 🗓️
