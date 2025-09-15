@@ -1,0 +1,30 @@
+@startuml diagrama_entidade_relacionamento
+' Configurações de aparência para um visual mais moderno
+!theme vibrant
+skinparam linetype ortho
+
+' Título do Diagrama
+title Diagrama de Entidade-Relacionamento - Afrodite Calendar
+
+' Definição da Entidade Usuario
+entity "Usuario" as user {
+  + uid: string {PK}
+  --
+  email: string
+  displayName: string
+}
+
+' Definição da Entidade Contato
+entity "Contato" as contact {
+  + id_documento: string {PK}
+  --
+  nome: string
+  telefone: string
+  # uid: string {FK}
+}
+
+' Definição do Relacionamento
+' Um Usuário pode ter zero ou muitos Contatos.
+user ||--o{ contact : "possui"
+
+@enduml

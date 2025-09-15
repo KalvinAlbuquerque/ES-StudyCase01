@@ -1,12 +1,9 @@
-@startuml diagrama_deploy
-' Thema para um visual mais moderno
+@startuml diagrama_deploy_atualizado
 !theme vibrant
 
-title Diagrama de Implantação - Afrodite Calendar no Heroku
+title Diagrama de Implantação - Afrodite Calendar (Atualizado)
 
-' Usa linhas retas para organizar as conexões
 skinparam linetype ortho
-
 !define DEVICONS https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/master/devicons
 !define FONTAWESOME https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/master/font-awesome-5
 !include DEVICONS/firefox.puml
@@ -26,8 +23,9 @@ cloud "Nuvem (Internet)" {
     node "Heroku" as heroku_node <<$heroku>> {
         artifact "Afrodite Calendar App\n(Spring Boot JAR)" as app <<$java>> {
             component "Frontend Estático\n(HTML, CSS, JS)" as frontend
-            component "API REST\n(Controllers)" as api
-            component "Lógica da Agenda\n(Models)" as core
+            component "API REST (Controllers & DTOs)" as api
+            component "Lógica de Negócio (Services & Security)" as services
+            component "Modelo (Core Logic & Factory)" as core
         }
     }
     
@@ -39,19 +37,16 @@ cloud "Nuvem (Internet)" {
 
 user -down-> browser : "1. Acessa a aplicação"
 
-' Fluxo de dados entre Browser e App
-app -up-> browser : "2. Serve arquivos do Frontend (HTML, CSS)"
-browser -down-> app : "3. Envia requisições para a API (com Token JWT)"
+app -up-> browser : "2. Serve arquivos estáticos"
+browser -down-> app : "3. Envia requisições para a API REST (com Token JWT)"
 
-' Fluxo Backend com os serviços do Firebase
 app -right-> auth : "4. Valida Token JWT (Admin SDK)"
-app -right-> firestore : "5. Lê e escreve dados dos contatos (Admin SDK)"
+app -right-> firestore : "5. Lê/Escreve dados dos contatos (Admin SDK)"
 
 note right of app
   A aplicação Spring Boot roda
-  em um container "Dyno",
-  servindo tanto o frontend estático
-  quanto a API REST.
+  em um container "Dyno", servindo
+  tanto o frontend quanto a API.
 end note
 
 @enduml
