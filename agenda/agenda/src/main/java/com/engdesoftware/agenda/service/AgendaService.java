@@ -5,17 +5,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.engdesoftware.agenda.model.Contato;
 import com.engdesoftware.agenda.model.FabricaAgenda;
 import com.engdesoftware.agenda.model.IF_Agenda;
 import com.engdesoftware.agenda.model.IF_Contato;
-import com.google.api.core.ApiFuture;
-import com.google.cloud.firestore.Firestore;
-import com.google.cloud.firestore.QueryDocumentSnapshot;
-import com.google.cloud.firestore.QuerySnapshot;
-import com.google.firebase.cloud.FirestoreClient;
+import com.engdesoftware.agenda.repository.ContatosRepository;
 
 /**
  * Camada de serviço responsável pela lógica de negócio da agenda de contatos.
@@ -25,22 +21,10 @@ import com.google.firebase.cloud.FirestoreClient;
  * @author Glenda Santana e Kalvin Albuquerque
  */
 @Service
-public class AgendaService {
-
-    /**
-     * Nome da coleção no Firestore onde os contatos são armazenados.
-     */
-    private static final String COLLECTION_NAME = "contatos";
-
-    /**
-     * Obtém a instância do cliente Firestore.
-     * Método auxiliar privado para centralizar o acesso ao banco de dados.
-     *
-     * @return A instância do Firestore configurada.
-     */
-    private Firestore getDb() {
-        return FirestoreClient.getFirestore();
-    }
+public class AgendaService 
+{
+    @Autowired
+    private ContatosRepository contatosRepository;
 
     /**
      * Adiciona um novo contato à agenda de um usuário específico e persiste no banco de dados.
@@ -60,6 +44,7 @@ public class AgendaService {
         // Obtém a agenda atual do usuário para realizar validações
         // 
         IF_Agenda agenda = getAgendaDeUsuario(uid);
+
         // 
         // Valida e adiciona ao modelo local
         // 
@@ -69,11 +54,9 @@ public class AgendaService {
         Map<String, Object> dadosParaSalvar = new HashMap<>();
         dadosParaSalvar.put("nome", contato.getNome());
         dadosParaSalvar.put("telefone", contato.getTelefone());
-        dadosParaSalvar.put("uid", uid); // Armazena o UID do proprietário para futuras consultas
+        dadosParaSalvar.put("uid", uid);
 
-        // Executa a operação de escrita no banco de dados de forma síncrona
-        getDb().collection(COLLECTION_NAME).document().set(dadosParaSalvar).get();
-
+        contatosRepository.save(uid, dadosParaSalvar);
         return true;
     }
 
@@ -85,25 +68,12 @@ public class AgendaService {
      * @param uid O identificador único (UID) do usuário cuja agenda deve ser recuperada.
      * @return Um objeto {@code IF_Agenda} contendo a lista de contatos do usuário.
      */
-    public IF_Agenda getAgendaDeUsuario(String uid) {
+    public IF_Agenda getAgendaDeUsuario(String uid) throws InterruptedException, ExecutionException
+    {
         IF_Agenda agenda = FabricaAgenda.getInstancia().criaAgenda(FabricaAgenda.AGENDA_LIST);
         Collection<IF_Contato> contatos = agenda.getListaAgenda();
 
-        try {
-            // Constrói a query para buscar contatos pelo UID do usuário
-            ApiFuture<QuerySnapshot> future = getDb().collection(COLLECTION_NAME).whereEqualTo("uid", uid).get();
-            // Itera sobre os documentos retornados e os converte em objetos Contato
-            for (QueryDocumentSnapshot document : future.get().getDocuments()) 
-            {
-                String nome = document.getString("nome");
-                String telefone = document.getString("telefone");
-                IF_Contato contato = new Contato(nome, telefone);
-                contatos.add(contato);
-            }
-        } catch (Exception e) {
-            // Em caso de falha, imprime o erro no console (idealmente, usar um logger)
-            e.printStackTrace();
-        }
+        contatosRepository.getAgenda(uid, contatos);
 
         return agenda;
     }
@@ -124,17 +94,7 @@ public class AgendaService {
         IF_Agenda agenda = getAgendaDeUsuario(uid);
         agenda.removeContato(telefone); // Valida se o contato existe e o remove do modelo local
 
-        // Query para encontrar o documento específico a ser deletado
-        ApiFuture<QuerySnapshot> future = getDb().collection(COLLECTION_NAME)
-                .whereEqualTo("uid", uid)
-                .whereEqualTo("telefone", telefone)
-                .get();
-
-        // Itera sobre os resultados (deve ser apenas um) e deleta o documento
-        for (QueryDocumentSnapshot document : future.get().getDocuments()) {
-            getDb().collection(COLLECTION_NAME).document(document.getId()).delete().get();
-        }
-
+        contatosRepository.removerContato(uid, telefone);
         return true;
     }
 }
