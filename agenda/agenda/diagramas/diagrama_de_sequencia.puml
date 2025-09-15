@@ -1,50 +1,51 @@
-@startuml diagrama_de_sequencia
-' Thema para um visual mais moderno
+@startuml diagrama_de_sequencia_atualizado
 !theme vibrant
 
-title Diagrama de Sequência - Remover Contato
+title Diagrama de Sequência - Adicionar Contato (Atualizado)
 
 actor Usuário
-participant "Browser\n(remover.html)" as Browser
-participant "Spring Boot App\n(AgendaController)" as App
-participant "AgendaMap" as Agenda
+participant "Browser\n(adicionar.html)" as Browser
+participant "AgendaController" as Controller
+participant "AgendaService" as Service
+participant "AgendaList" as AgendaModel
 participant "Firebase Firestore" as Firestore
 
-Usuário -> Browser: Digita nome/telefone para buscar
-Browser -> App: GET /api/agenda/contatos\n(com ID Token no Header)
+Usuário -> Browser: Preenche nome e telefone e clica em "Adicionar"
+Browser -> Controller: POST /api/agenda/contatos\n(Body: ContatoRequest, Header: Auth Token)
+activate Controller
 
-activate App
-App -> Agenda: getListaAgenda(uid)
-activate Agenda
-Agenda -> Firestore: whereEqualTo("uid", uid).get()
+Controller -> Service: adicionarContato(uid, contato)
+activate Service
+
+' Validação de duplicidade
+Service -> Service: getAgendaDeUsuario(uid)
+activate Service
+Service -> Firestore: query(contatos where uid=uid)
 activate Firestore
-Firestore --> Agenda: Retorna lista de contatos
+Firestore --> Service: Documentos dos contatos
 deactivate Firestore
-Agenda --> App: Retorna Collection<IF_Contato>
-deactivate Agenda
-App --> Browser: Resposta 200 OK com JSON dos contatos
-deactivate App
+Service -> AgendaModel: new AgendaList() e popula com contatos
+deactivate Service
 
-Browser -> Browser: Filtra contatos e exibe o encontrado
-Usuário -> Browser: Clica em "Remover Contato"
-Browser -> Browser: Abre Modal de Confirmação
+' Adição ao modelo local (onde a exceção de duplicado ocorre)
+Service -> AgendaModel: adicionaContato(contato)
+activate AgendaModel
+AgendaModel -> AgendaModel: Valida campos e telefone único
+AgendaModel --> Service: return true (ou lança exceção)
+deactivate AgendaModel
 
-Usuário -> Browser: Clica em "Sim, Remover" no Modal
-Browser -> App: DELETE /api/agenda/contatos/{telefone}\n(com ID Token)
-
-activate App
-App -> Agenda: removeContato(uid, telefone)
-activate Agenda
-Agenda -> Agenda: getContato(uid, telefone) para achar o ID do documento
-Agenda -> Firestore: delete(documentId)
+' Persistência no banco
+Service -> Firestore: set(novoContato)
 activate Firestore
-Firestore --> Agenda: Confirmação de remoção
+Firestore --> Service: Confirmação de escrita
 deactivate Firestore
-Agenda --> App: return true
-deactivate Agenda
-App --> Browser: Resposta 200 OK {"message": "..."}
-deactivate App
 
-Browser -> Usuário: Exibe Toast de "Contato removido com sucesso!"
+Service --> Controller: return
+deactivate Service
+
+Controller --> Browser: Resposta 200 OK {"message": "..."}
+deactivate Controller
+
+Browser -> Usuário: Exibe Toast de "Contato adicionado com sucesso!"
 
 @enduml

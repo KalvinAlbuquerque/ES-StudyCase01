@@ -1,44 +1,62 @@
-@startuml diagrama_de_classe
-' Thema para um visual mais moderno
+@startuml diagrama_de_classe_corrigido
 !theme vibrant
 
-title Diagrama de Classes - Afrodite Calendar 
+title Diagrama de Classes - Afrodite Calendar (Corrigido)
+
+package "DTOs" {
+  class "ContatoRequest" <<DTO>>
+  class "LoginRequest" <<DTO>>
+}
 
 package "Controllers" {
   class AgendaController {
-    - agenda: IF_Agenda
-    + listarContatos(...)
-    + adicionarContato(...)
-    + removerContato(...)
+    - agendaService: AgendaService
+    + listarContatos(auth)
+    + adicionarContato(auth, req)
+    + removerContato(auth, tel)
   }
+  AgendaController ..> "ContatoRequest" : usa
 
   class AuthController {
     - authService: AuthService
-    + handleLogin(...)
+    + handleLogin(req)
   }
+  AuthController ..> "LoginRequest" : usa
 }
 
 package "Services & Security" {
-  class AuthService {
-    - firebaseApiKey: String
-    + loginAndGetIdToken(...)
+  class AgendaService {
+    - COLLECTION_NAME: String
+    + adicionarContato(uid, contato)
+    + getAgendaDeUsuario(uid)
+    + removerContatoDeUsuario(uid, tel)
   }
 
+  class AuthService {
+    - firebaseApiKey: String
+    + loginAndGetIdToken(email, pass)
+  }
+  
   class FirebaseAuthenticationFilter {
     + doFilterInternal(...)
   }
-
+  
   class SecurityConfig {
     + securityFilterChain(http)
   }
 }
 
 package "Model (Core)" {
+  class FabricaAgenda <<Singleton>> {
+    + getInstancia()
+    + criaAgenda(tipo)
+  }
+
   interface IF_Agenda {
-    + adicionaContato(uid, contato)
-    + getContato(uid, telefone)
-    + removeContato(uid, telefone)
-    + getListaAgenda(uid)
+    + adicionaContato(contato)
+    + getContato(telefone)
+    + removeContato(telefone)
+    + getListaAgenda()
   }
 
   interface IF_Contato {
@@ -47,34 +65,31 @@ package "Model (Core)" {
   }
 
   class Contato implements IF_Contato {
-    - id: String
     - nome: String
     - telefone: String
-    - uid: String
   }
-
+  
+  class AgendaList implements IF_Agenda {
+    - listaContato: List<IF_Contato>
+  }
+  
   class AgendaMap implements IF_Agenda {
-    - COLLECTION_NAME: String
-    + adicionaContato(...)
-    + getContato(...)
-    + removeContato(...)
-    + getListaAgenda(...)
+    - listaContato: Map<String, IF_Contato>
   }
 }
 
 ' Relacionamentos
-AgendaController o--> IF_Agenda
+AgendaController o--> AgendaService
 AuthController o--> AuthService
 
-AgendaMap ..> "Firebase Firestore" : usa
-AuthService ..> "Firebase Authentication API" : usa
+AgendaService ..> FabricaAgenda : usa >
+AgendaService "1" *-- "1" IF_Agenda
+FabricaAgenda ..> AgendaList : cria
+FabricaAgenda ..> AgendaMap : cria
 
-note "Configurado via AgendaConfig para\ninjetar a implementação AgendaMap" as N1
-N1 .. AgendaController
+AgendaService ..> "Firebase Firestore" : usa
+AuthService ..> "Firebase Auth API" : usa
 
-note bottom of FirebaseAuthenticationFilter
-  Valida o Token JWT de cada requisição
-  e integra com o Spring Security.
-end note
+SecurityConfig ..> FirebaseAuthenticationFilter : configura
 
 @enduml
