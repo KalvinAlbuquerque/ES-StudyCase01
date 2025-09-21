@@ -8,7 +8,7 @@ skinparam linetype ortho
 !define FONTAWESOME https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/master/font-awesome-5
 !include DEVICONS/firefox.puml
 !include DEVICONS/java.puml
-!include DEVICONS/heroku.puml
+!include FONTAWESOME/server.puml
 !include FONTAWESOME/database.puml
 !include FONTAWESOME/user_shield.puml
 
@@ -20,7 +20,7 @@ node "Dispositivo do Cliente" {
 
 cloud "Nuvem (Internet)" {
     
-    node "Heroku" as heroku_node <<$heroku>> {
+    node "Servidor de Aplicação" as app_server <<$server>> {
         artifact "Afrodite Calendar App\n(Spring Boot JAR)" as app <<$java>> {
             component "Frontend Estático\n(HTML, CSS, JS)" as frontend
             component "API REST (Controllers & DTOs)" as api
@@ -45,8 +45,8 @@ app -right-> firestore : "5. Lê/Escreve dados dos contatos (Admin SDK)"
 
 note right of app
   A aplicação Spring Boot roda
-  em um container "Dyno", servindo
-  tanto o frontend quanto a API.
+  no servidor, servindo tanto o 
+  frontend quanto a API.
 end note
 
 @enduml
