@@ -22,9 +22,5 @@ user -- UC_SEARCH
 user -- UC_REMOVE
 
 ' Define que as outras ações dependem da autenticação
-UC_ADD .> UC_AUTH : <<include>>
-UC_LIST .> UC_AUTH : <<include>>
-UC_SEARCH .> UC_AUTH : <<include>>
-UC_REMOVE .> UC_AUTH : <<include>>
 
 @enduml
