@@ -7,11 +7,11 @@ title Afrodite Calendar - Casos de Uso (Atualizado)
 actor "Usuário" as user
 
 rectangle "Sistema Afrodite Calendar" {
-  usecase "Autenticar-se" as UC_AUTH
-  usecase "Adicionar Contato" as UC_ADD
-  usecase "Listar Contatos" as UC_LIST
-  usecase "Buscar Contato" as UC_SEARCH
-  usecase "Remover Contato" as UC_REMOVE
+  usecase "5.Autenticar-se" as UC_AUTH
+  usecase "4.Listar Contatos" as UC_LIST
+  usecase "3.Remover Contato" as UC_REMOVE
+  usecase "2.Buscar Contato" as UC_SEARCH
+  usecase "1.Adicionar Contato" as UC_ADD
 }
 
 ' Ações diretas do usuário
