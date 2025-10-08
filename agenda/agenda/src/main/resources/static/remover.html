@@ -27,7 +27,7 @@
 
     <div id="content">
         <div class="card mt-4">
-            <h5 class="card-header">Remover Contato</h5>
+            <h5 class="card-header">Remover um Contato Específico</h5>
             <div class="card-body">
                 <div class="mb-3">
                     <label for="search-remove-input" class="form-label">Buscar Contato para Remover:</label>
@@ -41,9 +41,21 @@
                  <p id="remove-feedback"></p>
             </div>
         </div>
+
+        <div class="card mt-4">
+            <h5 class="card-header">Remover Contatos por Inicial</h5>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="inicial-input" class="form-label">Digite a Inicial:</label>
+                    <input type="text" class="form-control" id="inicial-input" placeholder="Ex: A" maxlength="1" style="text-transform: uppercase;">
+                </div>
+                <button id="remove-by-inicial-btn" class="btn btn-danger">Remover Todos com esta Inicial</button>
+            </div>
+        </div>
     </div>
 
     <div class="toast-container"></div>
+
     <div class="modal fade" id="confirmRemoveModal" tabindex="-1" aria-labelledby="confirmRemoveModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -62,8 +74,28 @@
         </div>
     </div>
     
+    <div class="modal fade" id="confirmRemoveByInicialModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar Remoção em Massa</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Tem a certeza que deseja remover os seguintes contatos? Esta ação não pode ser desfeita.</p>
+                    <div id="lista-contatos-para-remover" class="mt-2 mb-2" style="max-height: 200px; overflow-y: auto;"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteByInicialButton">Sim, Remover Todos</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Variáveis para a remoção de um contato
         const searchInput = document.getElementById('search-remove-input');
         const contactDiv = document.getElementById('contact-to-remove');
         const removeBtn = document.getElementById('remove-btn');
@@ -75,6 +107,15 @@
         const modalContactName = document.getElementById('modalContactName');
         const confirmDeleteButton = document.getElementById('confirmDeleteButton');
         let contactFound = null;
+
+        // Variáveis para a remoção por inicial
+        const inicialInput = document.getElementById('inicial-input');
+        const removeByInicialBtn = document.getElementById('remove-by-inicial-btn');
+        const confirmRemoveByInicialModalEl = document.getElementById('confirmRemoveByInicialModal');
+        const confirmRemoveByInicialModal = new bootstrap.Modal(confirmRemoveByInicialModalEl);
+        const listaContatosParaRemoverEl = document.getElementById('lista-contatos-para-remover');
+        const confirmDeleteByInicialButton = document.getElementById('confirmDeleteByInicialButton');
+        let inicialParaRemover = '';
 
         if (!idToken) window.location.href = '/login.html';
 
@@ -94,6 +135,7 @@
             toastEl.addEventListener('hidden.bs.toast', () => { toastEl.remove(); });
         }
 
+        // Lógica para busca e remoção de um contato
         searchInput.addEventListener('input', async () => {
             const searchTerm = searchInput.value.toLowerCase();
             contactDiv.classList.add('d-none');
@@ -145,6 +187,70 @@
                 showToast(`Erro ao remover: ${error.message}`, 'danger');
             } finally {
                 confirmModal.hide();
+            }
+        });
+
+        // Lógica para remoção por inicial
+        removeByInicialBtn.addEventListener('click', async () => {
+            const inicial = inicialInput.value.trim().toUpperCase();
+            if (!inicial || !/^[A-Z]$/.test(inicial)) {
+                showToast('Por favor, digite uma única letra.', 'danger');
+                return;
+            }
+
+            try {
+                // CORRIGIDO: Usa a nova URL para buscar os contatos
+                const response = await fetch(`/api/agenda/contatos-por-inicial/${inicial}`, {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${idToken}` }
+                });
+
+                if (!response.ok) throw new Error("Falha ao buscar contatos para pré-visualização.");
+
+                const contatosParaRemover = await response.json();
+
+                if (contatosParaRemover.length === 0) {
+                    showToast(`Nenhum contato encontrado com a inicial '${inicial}'.`, 'danger');
+                    return;
+                }
+
+                listaContatosParaRemoverEl.innerHTML = '';
+                const ul = document.createElement('ul');
+                ul.classList.add('list-group', 'list-group-flush');
+                contatosParaRemover.forEach(contato => {
+                    const li = document.createElement('li');
+                    li.classList.add('list-group-item', 'bg-transparent', 'text-white');
+                    li.textContent = `${contato.nome} (${contato.telefone})`;
+                    ul.appendChild(li);
+                });
+                listaContatosParaRemoverEl.appendChild(ul);
+
+                inicialParaRemover = inicial;
+                confirmRemoveByInicialModal.show();
+
+            } catch (error) {
+                showToast(error.message, 'danger');
+            }
+        });
+
+        confirmDeleteByInicialButton.addEventListener('click', async () => {
+            if (!inicialParaRemover) return;
+            try {
+                // CORRIGIDO: Usa a nova URL para apagar os contatos
+                const response = await fetch(`/api/agenda/contatos-por-inicial/${inicialParaRemover}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${idToken}` }
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.message);
+                
+                showToast(data.message, 'success');
+                inicialInput.value = '';
+            } catch (error) {
+                showToast(`Erro ao remover: ${error.message}`, 'danger');
+            } finally {
+                confirmRemoveByInicialModal.hide();
+                inicialParaRemover = '';
             }
         });
 

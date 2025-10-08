@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,31 +16,36 @@ import com.engdesoftware.agenda.repository.ContatosRepository;
 
 /**
  * Camada de serviço responsável pela lógica de negócio da agenda de contatos.
- * Esta classe atua como intermediária entre os Controllers e a persistência de dados no Firestore,
- * gerenciando operações como adicionar, remover e consultar contatos.
+ * Esta classe atua como intermediária entre os Controllers e a persistência de
+ * dados no Firestore, gerenciando operações como adicionar, remover e consultar
+ * contatos.
  *
  * @author Glenda Santana e Kalvin Albuquerque
  */
 @Service
-public class AgendaService 
-{
+public class AgendaService {
+
     @Autowired
     private ContatosRepository contatosRepository;
 
     /**
-     * Adiciona um novo contato à agenda de um usuário específico e persiste no banco de dados.
-     * Primeiro, o contato é validado e adicionado à representação da agenda em memória.
-     * Em seguida, é salvo como um novo documento no Firestore.
+     * Adiciona um novo contato à agenda de um usuário específico e persiste no
+     * banco de dados. Primeiro, o contato é validado e adicionado à
+     * representação da agenda em memória. Em seguida, é salvo como um novo
+     * documento no Firestore.
      *
-     * @param uid     O identificador único (UID) do usuário proprietário do contato.
+     * @param uid O identificador único (UID) do usuário proprietário do
+     * contato.
      * @param contato O objeto de contato a ser adicionado.
      * @return {@code true} se o contato foi adicionado com sucesso.
-     * @throws InterruptedException     Se a thread for interrompida enquanto aguarda a operação do Firestore.
-     * @throws ExecutionException       Se ocorrer um erro durante a execução da operação no Firestore.
-     * @throws IllegalArgumentException Se os dados do contato forem inválidos (ex: nome/telefone vazios ou telefone duplicado).
+     * @throws InterruptedException Se a thread for interrompida enquanto
+     * aguarda a operação do Firestore.
+     * @throws ExecutionException Se ocorrer um erro durante a execução da
+     * operação no Firestore.
+     * @throws IllegalArgumentException Se os dados do contato forem inválidos
+     * (ex: nome/telefone vazios ou telefone duplicado).
      */
-    public boolean adicionarContato(String uid, IF_Contato contato) throws InterruptedException, ExecutionException, IllegalArgumentException 
-    {
+    public boolean adicionarContato(String uid, IF_Contato contato) throws InterruptedException, ExecutionException, IllegalArgumentException {
         // 
         // Obtém a agenda atual do usuário para realizar validações
         // 
@@ -48,7 +54,7 @@ public class AgendaService
         // 
         // Valida e adiciona ao modelo local
         // 
-        agenda.adicionaContato(contato); 
+        agenda.adicionaContato(contato);
 
         // Prepara os dados para salvar no Firestore
         Map<String, Object> dadosParaSalvar = new HashMap<>();
@@ -61,15 +67,16 @@ public class AgendaService
     }
 
     /**
-     * Recupera todos os contatos de um usuário específico do Firestore.
-     * Cria uma instância de agenda e a popula com os contatos encontrados no banco de dados
-     * que correspondem ao UID do usuário fornecido.
+     * Recupera todos os contatos de um usuário específico do Firestore. Cria
+     * uma instância de agenda e a popula com os contatos encontrados no banco
+     * de dados que correspondem ao UID do usuário fornecido.
      *
-     * @param uid O identificador único (UID) do usuário cuja agenda deve ser recuperada.
-     * @return Um objeto {@code IF_Agenda} contendo a lista de contatos do usuário.
+     * @param uid O identificador único (UID) do usuário cuja agenda deve ser
+     * recuperada.
+     * @return Um objeto {@code IF_Agenda} contendo a lista de contatos do
+     * usuário.
      */
-    public IF_Agenda getAgendaDeUsuario(String uid) throws InterruptedException, ExecutionException
-    {
+    public IF_Agenda getAgendaDeUsuario(String uid) throws InterruptedException, ExecutionException {
         IF_Agenda agenda = FabricaAgenda.getInstancia().criaAgenda(FabricaAgenda.AGENDA_LIST);
         Collection<IF_Contato> contatos = agenda.getListaAgenda();
 
@@ -79,22 +86,62 @@ public class AgendaService
     }
 
     /**
-     * Remove um contato da agenda de um usuário, identificado pelo número de telefone.
-     * A remoção ocorre tanto na representação em memória quanto no documento correspondente no Firestore.
+     * Remove um contato da agenda de um usuário, identificado pelo número de
+     * telefone. A remoção ocorre tanto na representação em memória quanto no
+     * documento correspondente no Firestore.
      *
-     * @param uid      O identificador único (UID) do usuário proprietário do contato.
-     * @param telefone O número de telefone do contato a ser removido, que atua como chave de remoção.
+     * @param uid O identificador único (UID) do usuário proprietário do
+     * contato.
+     * @param telefone O número de telefone do contato a ser removido, que atua
+     * como chave de remoção.
      * @return {@code true} se o contato foi removido com sucesso.
-     * @throws InterruptedException     Se a thread for interrompida enquanto aguarda a operação do Firestore.
-     * @throws ExecutionException       Se ocorrer um erro durante a execução da operação no Firestore.
-     * @throws IllegalArgumentException Se nenhum contato com o telefone especificado for encontrado na agenda do usuário.
+     * @throws InterruptedException Se a thread for interrompida enquanto
+     * aguarda a operação do Firestore.
+     * @throws ExecutionException Se ocorrer um erro durante a execução da
+     * operação no Firestore.
+     * @throws IllegalArgumentException Se nenhum contato com o telefone
+     * especificado for encontrado na agenda do usuário.
      */
-    public boolean removerContatoDeUsuario(String uid, String telefone) throws InterruptedException, ExecutionException, IllegalArgumentException 
-    {
+    public boolean removerContatoDeUsuario(String uid, String telefone) throws InterruptedException, ExecutionException, IllegalArgumentException {
         IF_Agenda agenda = getAgendaDeUsuario(uid);
         agenda.removeContato(telefone); // Valida se o contato existe e o remove do modelo local
 
         contatosRepository.removerContato(uid, telefone);
         return true;
+    }
+
+    public Collection<IF_Contato> getContatosPorInicial(String uid, String inicial) throws InterruptedException, ExecutionException {
+        IF_Agenda agendaCompleta = getAgendaDeUsuario(uid);
+
+        // Filtra a lista de contatos em memória
+        return agendaCompleta.getListaAgenda().stream()
+                .filter(contato -> contato.getNome() != null
+                && contato.getNome().toUpperCase().startsWith(inicial.toUpperCase()))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Remove todos os contatos de um usuário cuja inicial do nome corresponde à
+     * fornecida.
+     *
+     * @param uid O identificador único (UID) do usuário.
+     * @param inicial A letra inicial dos nomes dos contatos a serem removidos.
+     * @return O número de contatos que foram removidos.
+     * @throws InterruptedException Se a thread for interrompida.
+     * @throws ExecutionException Se ocorrer um erro na execução do Firestore.
+     * @throws IllegalArgumentException Se a inicial fornecida for inválida.
+     */
+    public int removerContatosPorInicial(String uid, String inicial) throws InterruptedException, ExecutionException, IllegalArgumentException {
+        if (inicial == null || inicial.length() != 1 || !Character.isLetter(inicial.charAt(0))) {
+            throw new IllegalArgumentException("A inicial fornecida é inválida. Deve ser uma única letra.");
+        }
+
+        int deletedCount = contatosRepository.removerContatosPorInicial(uid, inicial);
+
+        if (deletedCount == 0) {
+            throw new IllegalArgumentException("Nenhum contato encontrado com a inicial '" + inicial + "'.");
+        }
+
+        return deletedCount;
     }
 }

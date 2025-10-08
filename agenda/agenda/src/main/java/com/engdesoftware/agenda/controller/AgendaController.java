@@ -1,16 +1,23 @@
 package com.engdesoftware.agenda.controller;
 
-import com.engdesoftware.agenda.model.IF_Contato;
-import com.engdesoftware.agenda.service.AgendaService;
+import java.util.Collection;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.engdesoftware.agenda.dto.ContatoRequest;
-
-import java.util.Collection;
-import java.util.concurrent.ExecutionException;
+import com.engdesoftware.agenda.model.IF_Contato;
+import com.engdesoftware.agenda.service.AgendaService;
 
 /*
  * Controlador REST para gerir a agenda de contactos.
@@ -36,15 +43,7 @@ public class AgendaController
     {
         try 
         {
-            //
-            //  O "nome" definido no objeto de autenticação é o uid do utilizador. Com esta linha, o Controller sabe
-            //  quem é o utilizador que está fazendo requisição.
-            //
             String uid = authentication.getName();
-
-            //
-            //  O controller delega a obtenção da lista de contactos ao serviço de agenda.
-            //
             return ResponseEntity.ok(agendaService.getAgendaDeUsuario(uid).getListaAgenda());
         } 
         catch (Exception e) 
@@ -63,17 +62,8 @@ public class AgendaController
     @PostMapping("/contatos")
     public ResponseEntity<String> adicionarContato(Authentication authentication, @RequestBody ContatoRequest contato) throws InterruptedException, ExecutionException, IllegalArgumentException
     {
-        //
-        //  O "nome" definido no objeto de autenticação é o uid do utilizador. Com esta linha, o Controller sabe
-        //  quem é o utilizador que está fazendo requisição.
-        //
         String uid = authentication.getName();
-
-        //
-        //  O controller delega a adição do contacto ao serviço de agenda.
-        //
         agendaService.adicionarContato(uid, contato.toContato());
-
         return ResponseEntity.ok("{\"message\":\"contato adicionado com sucesso.\"}");
     }
 
@@ -81,7 +71,6 @@ public class AgendaController
     public ResponseEntity<String> removerContato(Authentication authentication, @PathVariable String telefone) throws InterruptedException, ExecutionException, IllegalArgumentException
     {
         String uid = authentication.getName();
-
         boolean sucesso = agendaService.removerContatoDeUsuario(uid, telefone);
 
         if (sucesso) 
@@ -92,5 +81,25 @@ public class AgendaController
         {
             throw new IllegalArgumentException("contato com o telefone " + telefone + " não encontrado.");
         }
+    }
+
+    // Endpoint para LISTAR contatos por inicial (para pré-visualização)
+    @GetMapping("/contatos-por-inicial/{inicial}")
+    public ResponseEntity<Collection<IF_Contato>> listarContatosPorInicial(Authentication authentication, @PathVariable String inicial) 
+            throws InterruptedException, ExecutionException {
+        String uid = authentication.getName();
+        Collection<IF_Contato> contatos = agendaService.getContatosPorInicial(uid, inicial);
+        return ResponseEntity.ok(contatos);
+    }
+
+    // Endpoint para APAGAR contatos por inicial
+    @DeleteMapping("/contatos-por-inicial/{inicial}")
+    public ResponseEntity<Map<String, String>> removerContatosPorInicial(Authentication authentication, @PathVariable String inicial) 
+            throws InterruptedException, ExecutionException, IllegalArgumentException {
+        String uid = authentication.getName();
+        int count = agendaService.removerContatosPorInicial(uid, inicial);
+
+        String message = count + " contato(s) com a inicial '" + inicial + "' foram removidos com sucesso.";
+        return ResponseEntity.ok(Map.of("message", message));
     }
 }
